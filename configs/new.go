@@ -26,6 +26,7 @@ func New(meta *Metadata) *viper.Viper {
 
 	v.SetConfigName(SETTING_CONFIG_FILE)
 	v.SetConfigType(SETTING_CONFIG_EXT)
+	v.AddConfigPath(fmt.Sprintf("/etc/%s", meta.Name))
 	v.AddConfigPath(fmt.Sprintf("$HOME/.config/%s", meta.Name))
 	v.AddConfigPath(".")
 
