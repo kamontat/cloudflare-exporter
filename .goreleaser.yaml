@@ -28,6 +28,9 @@ builds:
       - amd64
       - arm64
       - arm
+    goarm:
+      - "6"
+      - "7"
     ldflags:
       - -s -w
       - -X main.name={{.ProjectName}}
@@ -36,21 +39,125 @@ builds:
       - -X main.gitCommit={{.ShortCommit}}
       - -X main.gitClean={{.IsGitClean}}
       - -X main.builtBy=goreleaser
-archives:
-  - format: tar.gz
-    # this name template makes the OS and Arch compatible with the results of `uname`.
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
-    format_overrides:
-      - goos: windows
-        format: zip
 
+archives:
+  - id: default
+    format: binary
+    builds:
+      - default
+
+dockers:
+  - id: default-amd64
+    ids:
+      - default
+    use: buildx
+    goos: linux
+    goarch: amd64
+    skip_push: false
+    image_templates:
+      - "ghcr.io/kamontat/cloudflare-exporter:amd64"
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-amd64"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.tag={{.Tag}}"
+      - "--platform=linux/amd64"
+  - id: default-arm64
+    ids:
+      - default
+    use: buildx
+    goos: linux
+    goarch: arm64
+    skip_push: false
+    image_templates:
+      - "ghcr.io/kamontat/cloudflare-exporter:arm64"
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-arm64"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.tag={{.Tag}}"
+      - "--platform=linux/arm64/v8"
+  - id: default-armv6
+    ids:
+      - default
+    use: buildx
+    goos: linux
+    goarch: arm
+    goarm: "6"
+    skip_push: false
+    image_templates:
+      - "ghcr.io/kamontat/cloudflare-exporter:armv6"
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-armv6"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.tag={{.Tag}}"
+      - "--platform=linux/arm/v6"
+  - id: default-armv7
+    ids:
+      - default
+    use: buildx
+    goos: linux
+    goarch: arm
+    goarm: "7"
+    skip_push: false
+    image_templates:
+      - "ghcr.io/kamontat/cloudflare-exporter:armv7"
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-armv7"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.tag={{.Tag}}"
+      - "--platform=linux/arm/v7"
+docker_manifests:
+  - name_template: "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}"
+    image_templates:
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-amd64"
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-arm64"
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-armv7"
+      - "ghcr.io/kamontat/cloudflare-exporter:{{.Version}}-armv6"
+  - name_template: "ghcr.io/kamontat/cloudflare-exporter:latest"
+    image_templates:
+      - "ghcr.io/kamontat/cloudflare-exporter:amd64"
+      - "ghcr.io/kamontat/cloudflare-exporter:arm64"
+      - "ghcr.io/kamontat/cloudflare-exporter:armv7"
+      - "ghcr.io/kamontat/cloudflare-exporter:armv6"
+
+report_sizes: true
+
+gomod:
+  proxy: true
+  env:
+    - GOPROXY=https://proxy.golang.org,direct
+    - GOSUMDB=sum.golang.org
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+  algorithm: sha256
+
+# TODO: implement sign binary and docker image
+# binary_signs:
+#   - {}
+# signs:
+#   - artifacts: checksum
+
+snapshot:
+  version_template: "{{.Version}}-dev.{{.ShortCommit}}"
+release:
+  mode: append
+  draft: false
 changelog:
   sort: asc
   filters:
