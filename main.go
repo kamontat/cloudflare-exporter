@@ -13,7 +13,7 @@ var (
 	version   string = "v0.0.0"
 	date      string = "<date>"
 	gitCommit string = "<commit>"
-	gitClean  string = "<is-clean>"
+	gitState  string = "dirty"
 	builtBy   string = "manual"
 )
 
@@ -29,7 +29,7 @@ func init() {
 		Version:   version,
 		Date:      date,
 		GitCommit: gitCommit,
-		GitClean:  gitClean,
+		GitState:  gitState,
 		BuiltBy:   builtBy,
 	})
 

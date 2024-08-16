@@ -37,7 +37,7 @@ builds:
       - -X main.version={{.Version}}
       - -X main.date={{.Date}}
       - -X main.gitCommit={{.ShortCommit}}
-      - -X main.gitClean={{.IsGitClean}}
+      - -X main.gitState={{.GitTreeState}}
       - -X main.builtBy=goreleaser
 
 archives:
@@ -60,6 +60,7 @@ dockers:
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
@@ -78,6 +79,7 @@ dockers:
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
@@ -97,6 +99,7 @@ dockers:
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
@@ -116,6 +119,7 @@ dockers:
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"

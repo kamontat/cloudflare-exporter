@@ -11,7 +11,7 @@ type Metadata struct {
 	Version   string
 	Date      string
 	GitCommit string
-	GitClean  string
+	GitState  string
 	BuiltBy   string
 }
 
@@ -21,7 +21,7 @@ func (d *Metadata) ToFields() (fields []zap.Field) {
 	fields = append(fields, zap.String("version", d.Version))
 	fields = append(fields, zap.String("date", d.Date))
 	fields = append(fields, zap.String("git-commit", d.GitCommit))
-	fields = append(fields, zap.Bool("git-clean", d.GitClean == "true"))
+	fields = append(fields, zap.String("git-state", d.GitState))
 	fields = append(fields, zap.String("built-by", d.BuiltBy))
 
 	return
