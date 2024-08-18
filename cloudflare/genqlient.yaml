@@ -1,0 +1,11 @@
+# Default genqlient config; for full documentation see:
+# https://github.com/Khan/genqlient/blob/main/docs/genqlient.yaml
+
+schema: schema.gql
+operations:
+  - queries/*.gql
+generated: graphql-query.gen.go
+
+bindings:
+  float64:
+    type: float64

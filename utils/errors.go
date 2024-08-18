@@ -12,6 +12,12 @@ type checker struct {
 	name string
 }
 
+func CheckWarn(err error) {
+	if err != nil {
+		log.Printf("error: %v\n", err)
+	}
+}
+
 func CheckError(err error) {
 	if err != nil {
 		log.Fatalf("error: %v", err)

@@ -229,3 +229,12 @@ $RECYCLE.BIN/
 
 ## goreleaser
 dist
+
+## Environment variables file
+*.env
+
+## VSCode debug
+__debug_bin*
+
+## Go generated source code
+*.gen.go
