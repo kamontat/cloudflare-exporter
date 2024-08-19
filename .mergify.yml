@@ -4,9 +4,19 @@ pull_request_rules:
       - author = dependabot[bot]
     actions:
       queue:
-        name: dependabot
-        update_bot_account: kc-bot
-        merge_bot_account: kc-bot
+        name: automerger
+  - name: Automatically merge Owner PRs
+    conditions:
+      - author = kamontat
+    actions:
+      queue:
+        name: automerger
+  - name: Automatically merge approved PRs
+    conditions:
+      - approved-reviews-by = kamontat
+    actions:
+      queue:
+        name: automerger
   - name: Label conflicting pull requests
     conditions:
       - conflict
@@ -22,7 +32,7 @@ pull_request_rules:
         bot_account: kc-bot
 
 queue_rules:
-  - name: dependabot
+  - name: automerger
     merge_method: squash
     draft_bot_account: kc-bot
     update_bot_account: kc-bot
@@ -31,3 +41,4 @@ queue_rules:
       - check-success=main
     merge_conditions:
       - check-success=main
+      - check-success=CodeQL
