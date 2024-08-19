@@ -15,9 +15,11 @@ import (
 func New(meta *Metadata) *viper.Viper {
 	SetMetadata(meta)
 
+	var isProd = false
 	var level = slog.LevelDebug
 	if meta.BuiltBy == "goreleaser" {
 		level = slog.LevelWarn
+		isProd = true
 	}
 
 	var logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -32,9 +34,10 @@ func New(meta *Metadata) *viper.Viper {
 
 	var v = viper.NewWithOptions(
 		viper.WithLogger(logger),
-		viper.EnvKeyReplacer(strings.NewReplacer("-", "_")),
+		viper.EnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_")),
 	)
 
+	v.SetDefault(CONF_PRODUCTION, isProd)
 	v.SetDefault(CONF_DEBUG_MODE, false)
 	v.SetDefault(CONF_SILENT_MODE, false)
 	v.SetDefault(CONF_OUTPUT_JSON, false)
@@ -55,7 +58,16 @@ func New(meta *Metadata) *viper.Viper {
 	v.SetDefault(CONF_CF_API_TOKEN, "")
 	v.SetDefault(CONF_CF_API_EMAIL, "")
 	v.SetDefault(CONF_CF_API_KEY, "")
+	v.SetDefault(CONF_CF_ERROR_MODE, ERROR_MODE_LOG)
+	v.SetDefault(CONF_CF_INTERVAL, "3m")
 	v.SetDefault(CONF_CF_TIMEOUT, "5s")
+	v.SetDefault(CONF_CF_ACCOUNT_INCLUDE, "")
+	v.SetDefault(CONF_CF_ACCOUNT_EXCLUDE, "")
+	v.SetDefault(CONF_CF_ZONE_INCLUDE, "")
+	v.SetDefault(CONF_CF_ZONE_EXCLUDE, "")
+
+	v.SetDefault(CONF_METRICS_INCLUDE, "")
+	v.SetDefault(CONF_METRICS_EXCLUDE, "")
 
 	v.AutomaticEnv()
 
@@ -83,7 +95,7 @@ func setupFlags() *pflag.FlagSet {
 	flagset.StringP(CONF_SERVER_ADDR, "a", "", "Server address")
 	flagset.IntP(CONF_SERVER_PORT, "p", 0, "Server port number")
 	flagset.StringP(CONF_SERVER_METRIC_PATH, "m", "", "The Prometheus metrics path")
-	flagset.StringP(CONF_SERVER_HEALTH_PATH, "h", "", "The healthcheck path")
+	flagset.StringP(CONF_SERVER_HEALTH_PATH, "t", "", "The healthcheck path")
 	flagset.StringP(CONF_SERVER_LIVENESS_PATH, "l", "", "The Kubernetes liveness health path")
 	flagset.StringP(CONF_SERVER_READINESS_PATH, "n", "", "The Kubernetes readiness health path")
 
@@ -96,9 +108,18 @@ func setupFlags() *pflag.FlagSet {
 	flagset.StringP(CONF_SERVER_IDLE_TIMEOUT, "d", "", "The maximum amount of time to wait for the next request when keep-alive is enabled")
 
 	flagset.StringP(CONF_CF_API_TOKEN, "T", "", "https://developers.cloudflare.com/fundamentals/api/get-started/create-token")
-	flagset.StringP(CONF_CF_API_EMAIL, "E", "", "https://developers.cloudflare.com/fundamentals/api/get-started/keys/")
+	flagset.StringP(CONF_CF_API_EMAIL, "L", "", "https://developers.cloudflare.com/fundamentals/api/get-started/keys/")
 	flagset.StringP(CONF_CF_API_KEY, "K", "", "https://developers.cloudflare.com/fundamentals/api/get-started/keys/")
-	flagset.StringP(CONF_CF_TIMEOUT, "t", "", "How long should we wait for cloudflare to response")
+	flagset.StringP(CONF_CF_ERROR_MODE, "M", "", fmt.Sprintf("When cannot connect to cloudflare (Allowed values: %s, %s)", ERROR_MODE_LOG, ERROR_MODE_STOP))
+	flagset.StringP(CONF_CF_INTERVAL, "v", "", "How often we should request cloudflare APIs for latest metrics data")
+	flagset.StringP(CONF_CF_TIMEOUT, "o", "", "How long should we wait for cloudflare to response")
+	flagset.StringArrayP(CONF_CF_ACCOUNT_INCLUDE, "E", make([]string, 0), "Includes only accounts for scraping by scheduler")
+	flagset.StringArrayP(CONF_CF_ACCOUNT_EXCLUDE, "F", make([]string, 0), "Excludes accounts from scraping by scheduler")
+	flagset.StringArrayP(CONF_CF_ZONE_INCLUDE, "G", make([]string, 0), "Includes only zones for scraping by scheduler")
+	flagset.StringArrayP(CONF_CF_ZONE_EXCLUDE, "H", make([]string, 0), "Excludes zones from scraping by scheduler")
+
+	flagset.StringArrayP(CONF_METRICS_INCLUDE, "I", make([]string, 0), "Includes only metrics from export by exporter, intersection with blacklist if existed")
+	flagset.StringArrayP(CONF_METRICS_EXCLUDE, "X", make([]string, 0), "Excludes metrics from export by exporter, intersection with whitelist if existed")
 
 	utils.CheckError(flagset.Parse(os.Args[1:]))
 	return flagset
