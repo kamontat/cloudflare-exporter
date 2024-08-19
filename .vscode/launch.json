@@ -9,7 +9,23 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": ["--debug"]
+    },
+    {
+      "name": "Run",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
       "program": "${workspaceFolder}"
+    },
+    {
+      "name": "Run with excludes",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "args": ["--metrics.exclude", "zones_requests_total"]
     }
   ]
 }
