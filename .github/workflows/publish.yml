@@ -1,6 +1,7 @@
 name: Publish
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v*"
@@ -29,6 +30,6 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: release --clean
+          args: release --clean --auto-snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
