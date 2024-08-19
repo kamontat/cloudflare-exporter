@@ -1,0 +1,21 @@
+name: Main
+
+on:
+  push:
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+      - name: Check GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          args: check
+      - name: Build application
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          args: build --clean
