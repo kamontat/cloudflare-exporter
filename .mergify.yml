@@ -1,0 +1,33 @@
+pull_request_rules:
+  - name: Automatically merge Dependabot PRs
+    conditions:
+      - author = dependabot[bot]
+    actions:
+      queue:
+        name: dependabot
+        update_bot_account: kc-bot
+        merge_bot_account: kc-bot
+  - name: Label conflicting pull requests
+    conditions:
+      - conflict
+      - -closed
+    actions:
+      label:
+        toggle:
+          - conflict
+  - name: Make sure PR are up to date before merging
+    conditions: []
+    actions:
+      update:
+        bot_account: kc-bot
+
+queue_rules:
+  - name: dependabot
+    merge_method: squash
+    draft_bot_account: kc-bot
+    update_bot_account: kc-bot
+    merge_bot_account: kc-bot
+    queue_conditions:
+      - check-success=main
+    merge_conditions:
+      - check-success=main
