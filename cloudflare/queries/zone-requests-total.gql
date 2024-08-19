@@ -1,0 +1,21 @@
+query ZonesRequestsTotal($zones: [string!]!, $start: Time!, $end: Time!) {
+  viewer {
+    zones(filter: { zoneTag_in: $zones }) {
+      zoneTag
+      requests: httpRequestsAdaptiveGroups(
+        limit: 1
+        filter: { requestSource: "eyeball", datetime_geq: $start, datetime_lt: $end }
+      ) {
+        count
+        sum {
+          visits
+          edgeResponseBytes
+        }
+        avg {
+          originResponseDurationMs
+          edgeDnsResponseTimeMs
+        }
+      }
+    }
+  }
+}
