@@ -11,15 +11,18 @@ updates:
       interval: weekly
       day: friday
       time: 13:00
+    rebase-strategy: disabled
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
       day: friday
       time: 15:00
+    rebase-strategy: disabled
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
       day: friday
       time: 17:00
+    rebase-strategy: disabled
