@@ -24,7 +24,7 @@ func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		req2.Header.Set("X-AUTH-KEY", t.apiKey)
 	}
 
-	return t.wrapped.RoundTrip(req)
+	return t.wrapped.RoundTrip(req2)
 }
 
 func NewHttpClient(config *viper.Viper) *http.Client {
