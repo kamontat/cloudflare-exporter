@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  cancel-in-progress: true
+  group: release-${{ github.ref }}
+
 jobs:
   release-please:
     runs-on: ubuntu-latest

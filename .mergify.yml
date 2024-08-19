@@ -1,0 +1,44 @@
+pull_request_rules:
+  - name: Automatically merge Dependabot PRs
+    conditions:
+      - author = dependabot[bot]
+    actions:
+      queue:
+        name: automerger
+  - name: Automatically merge Owner PRs
+    conditions:
+      - author = kamontat
+    actions:
+      queue:
+        name: automerger
+  - name: Automatically merge approved PRs
+    conditions:
+      - approved-reviews-by = kamontat
+    actions:
+      queue:
+        name: automerger
+  - name: Label conflicting pull requests
+    conditions:
+      - conflict
+      - -closed
+    actions:
+      label:
+        toggle:
+          - conflict
+  - name: Make sure PR are up to date before merging
+    conditions: []
+    actions:
+      update:
+        bot_account: kc-bot
+
+queue_rules:
+  - name: automerger
+    merge_method: squash
+    draft_bot_account: kc-bot
+    update_bot_account: kc-bot
+    merge_bot_account: kc-bot
+    queue_conditions:
+      - check-success=main
+    merge_conditions:
+      - check-success=main
+      - check-success=CodeQL
