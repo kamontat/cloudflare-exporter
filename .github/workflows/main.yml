@@ -18,4 +18,4 @@ jobs:
       - name: Build application
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: build --clean
+          args: build --clean --snapshot
