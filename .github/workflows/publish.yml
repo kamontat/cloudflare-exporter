@@ -27,6 +27,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.BOT_USERNAME }}
           password: ${{ secrets.GH_TOKEN }}
+      - name: Tidy go module
+        run: go mod tidy
+      - name: Generate go module
+        run: go generate ./...
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
