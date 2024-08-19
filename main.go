@@ -3,15 +3,11 @@ package main
 import (
 	"os"
 	"os/signal"
-	"time"
 
-	"github.com/Khan/genqlient/graphql"
-	cf "github.com/cloudflare/cloudflare-go"
-	"github.com/go-co-op/gocron/v2"
 	"github.com/kamontat/cloudflare-exporter/cloudflare"
 	"github.com/kamontat/cloudflare-exporter/configs"
 	"github.com/kamontat/cloudflare-exporter/loggers"
-	"github.com/kamontat/cloudflare-exporter/utils"
+	"github.com/kamontat/cloudflare-exporter/prom"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -30,8 +26,6 @@ var (
 	metadata *configs.Metadata
 	config   *viper.Viper
 	logger   *zap.Logger
-	api      *cf.API
-	gql      graphql.Client
 )
 
 func init() {
@@ -46,30 +40,26 @@ func init() {
 
 	config = configs.New(metadata)
 	logger = loggers.SetDefault(loggers.New(config))
-	api = cloudflare.NewAPI(config)
-	gql = cloudflare.NewGraphQL(config)
 }
 
 func main() {
 	defer logger.Sync()
 
-	logger.Info("Start application", metadata.ToFields()...)
+	// Initiate cloudflare and prometheus
+	prometheus := prom.New(config)
+	client := cloudflare.New(config)
 
-	scheduler := utils.CheckErrorWithData(gocron.NewScheduler())
-	server := newServer()
-
-	rootPath(server)
-	healthPath(server)
-	metricPath(server)
-
-	scheduler.NewJob(gocron.DurationJob(3*time.Second), gocron.NewTask(func() {
-		logger.Info("print every 3 seconds")
-	}))
+	app := NewApp(client, prometheus)
+	app.Setup()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
-	go func() { startServer(server, scheduler) }()
 
+	// Start application
+	go func() { app.Start() }()
+
+	// Wait and shutdown application
 	<-c
-	shutdownServer(server, scheduler)
+	logger.Info("Gracefully shutting down...")
+	app.Shutdown()
 }

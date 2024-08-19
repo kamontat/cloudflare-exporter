@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
-	"github.com/go-co-op/gocron/v2"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/helmet"
-	fiberLogger "github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/gofiber/fiber/v3/middleware/timeout"
+	"github.com/kamontat/cloudflare-exporter/cloudflare"
 	"github.com/kamontat/cloudflare-exporter/configs"
+	"github.com/kamontat/cloudflare-exporter/loggers"
+	"github.com/kamontat/cloudflare-exporter/prom"
 	"github.com/kamontat/cloudflare-exporter/units"
 	"github.com/kamontat/cloudflare-exporter/utils"
 	"go.uber.org/zap"
@@ -36,43 +36,12 @@ func newServer() *fiber.App {
 	app.Use(requestid.New(requestid.ConfigDefault))
 	app.Use(compress.New(compress.ConfigDefault))
 	app.Use(helmet.New(helmet.ConfigDefault))
-	app.Use(fiberLogger.New(fiberLogger.Config{
-		DisableColors: config.GetBool(configs.CONF_OUTPUT_JSON),
-		Next: func(c fiber.Ctx) bool {
-			return c.Path() == config.GetString(configs.CONF_SERVER_HEALTH_PATH) ||
-				c.Path() == config.GetString(configs.CONF_SERVER_LIVENESS_PATH) ||
-				c.Path() == config.GetString(configs.CONF_SERVER_READINESS_PATH)
-		},
-		LoggerFunc: func(c fiber.Ctx, data *fiberLogger.Data, cfg fiberLogger.Config) error {
-			var colors *fiber.Colors
-			if !cfg.DisableColors {
-				c := c.App().Config().ColorScheme
-				colors = &c
-			}
-
-			err := ""
-			if data.ChainErr != nil {
-				err = data.ChainErr.Error()
-			}
-
-			logger.Info(fmt.Sprintf("%s %s: %s %s %13v %s",
-				methodColor(c.Method(), colors),
-				c.Path(),
-				statusColor(c.Response().StatusCode(), colors),
-				c.IP(),
-				data.Stop.Sub(data.Start),
-				err,
-			),
-				zap.String("RequestID", requestid.FromContext(c)),
-			)
-			return nil
-		},
-	}))
+	app.Use(loggers.FiberLoggerAdapter(logger, config))
 
 	return app
 }
 
-func rootPath(server *fiber.App) {
+func setupRootPath(server *fiber.App) {
 	var metricPath = config.GetString(configs.CONF_SERVER_METRIC_PATH)
 	var healthPath = config.GetString(configs.CONF_SERVER_HEALTH_PATH)
 	var livenessPath = config.GetString(configs.CONF_SERVER_LIVENESS_PATH)
@@ -89,12 +58,12 @@ func rootPath(server *fiber.App) {
 	})
 }
 
-func metricPath(server *fiber.App) {
+func setupMetricPath(server *fiber.App, prometheus *prom.Prometheus) {
 	var metricPath = config.GetString(configs.CONF_SERVER_METRIC_PATH)
-	server.Get(metricPath, PromHttpHandler())
+	server.Get(metricPath, prometheus.Handler())
 }
 
-func healthPath(server *fiber.App) {
+func setupHealthPath(server *fiber.App, client *cloudflare.Client) {
 	var healthPath = config.GetString(configs.CONF_SERVER_HEALTH_PATH)
 	server.Get(healthPath, healthcheck.NewHealthChecker())
 
@@ -108,7 +77,7 @@ func healthPath(server *fiber.App) {
 	var readinessPath = config.GetString(configs.CONF_SERVER_READINESS_PATH)
 	server.Get(readinessPath, timeout.New(healthcheck.NewHealthChecker(healthcheck.Config{
 		Probe: func(c fiber.Ctx) bool {
-			token, err := api.VerifyAPIToken(c.Context())
+			token, err := client.API.VerifyAPIToken(c.Context())
 			if err != nil {
 				logger.Warn("Cannot verify cloudflare token", zap.Error(err))
 				return false
@@ -122,16 +91,26 @@ func healthPath(server *fiber.App) {
 	}), config.GetDuration(configs.CONF_CF_TIMEOUT)))
 }
 
-func startServer(server *fiber.App, scheduler gocron.Scheduler) {
+func startServer(server *fiber.App) {
 	addr := fmt.Sprintf(
 		"%s:%d",
 		config.GetString(configs.CONF_SERVER_ADDR),
 		config.GetInt(configs.CONF_SERVER_PORT),
 	)
 
-	scheduler.Start()
+	server.Hooks().OnListen(func(ld fiber.ListenData) error {
+		schema := "http"
+		if ld.TLS {
+			schema = "https"
+		}
+
+		logger.Info(fmt.Sprintf("Listening server at %s://%s:%s", schema, ld.Host, ld.Port))
+		return nil
+	})
+
 	utils.CheckError(server.Listen(addr, fiber.ListenConfig{
-		EnablePrintRoutes: config.GetBool(configs.CONF_DEBUG_MODE),
+		EnablePrintRoutes:     config.GetBool(configs.CONF_DEBUG_MODE),
+		DisableStartupMessage: config.GetBool(configs.CONF_PRODUCTION),
 		OnShutdownError: func(err error) {
 			logger.Error(err.Error())
 		},
@@ -141,10 +120,8 @@ func startServer(server *fiber.App, scheduler gocron.Scheduler) {
 	}))
 }
 
-func shutdownServer(server *fiber.App, scheduler gocron.Scheduler) {
-	logger.Info("Gracefully shutting down...")
+func shutdownServer(server *fiber.App) {
 	logger.Info("Shutdown server", zap.Error(server.Shutdown()))
-	logger.Info("Shutdown cronjob scheduler", zap.Error(scheduler.Shutdown()))
 }
 
 func parseDataSize(key string) int {
@@ -153,48 +130,4 @@ func parseDataSize(key string) int {
 
 func parseDuration(key string) time.Duration {
 	return utils.CheckErrorWithData(time.ParseDuration(config.GetString(key)))
-}
-
-func methodColor(method string, colors *fiber.Colors) string {
-	if colors == nil {
-		return method
-	}
-	var color string
-	switch method {
-	case fiber.MethodGet:
-		color = colors.Cyan
-	case fiber.MethodPost:
-		color = colors.Green
-	case fiber.MethodPut:
-		color = colors.Yellow
-	case fiber.MethodDelete:
-		color = colors.Red
-	case fiber.MethodPatch:
-		color = colors.White
-	case fiber.MethodHead:
-		color = colors.Magenta
-	case fiber.MethodOptions:
-		color = colors.Blue
-	default:
-		color = colors.Reset
-	}
-	return fmt.Sprintf("%s%s%s", color, method, colors.Reset)
-}
-
-func statusColor(code int, colors *fiber.Colors) string {
-	if colors == nil {
-		return strconv.Itoa(code)
-	}
-	var color string
-	switch {
-	case code >= fiber.StatusOK && code < fiber.StatusMultipleChoices:
-		color = colors.Green
-	case code >= fiber.StatusMultipleChoices && code < fiber.StatusBadRequest:
-		color = colors.Blue
-	case code >= fiber.StatusBadRequest && code < fiber.StatusInternalServerError:
-		color = colors.Yellow
-	default:
-		color = colors.Red
-	}
-	return fmt.Sprintf("%s%d%s", color, code, colors.Reset)
 }
