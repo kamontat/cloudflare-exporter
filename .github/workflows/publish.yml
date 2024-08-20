@@ -6,6 +6,10 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.workflow_sha }}-${{ github.ref_name }}
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
