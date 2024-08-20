@@ -32,6 +32,6 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: release --clean --auto-snapshot
+          args: release --clean --verbose --auto-snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

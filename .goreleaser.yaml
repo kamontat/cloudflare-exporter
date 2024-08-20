@@ -146,7 +146,6 @@ report_sizes: true
 
 gomod:
   proxy: true
-  mod: mod
   env:
     - GOPROXY=https://proxy.golang.org,direct
     - GOSUMDB=sum.golang.org
