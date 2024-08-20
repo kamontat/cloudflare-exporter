@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.9 (2024-08-20)
+
+**Full Changelog**: https://github.com/kamontat/cloudflare-exporter/compare/v0.0.8...v0.0.9
+
 ## 0.0.8 (2024-08-20)
 
 **Full Changelog**: https://github.com/kamontat/cloudflare-exporter/compare/v0.0.7...v0.0.8
