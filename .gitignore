@@ -235,6 +235,3 @@ dist
 
 ## VSCode debug
 __debug_bin*
-
-## Go generated source code
-*.gen.go
