@@ -13,10 +13,14 @@ jobs:
     steps:
       - name: Set up code
         uses: actions/checkout@v4
-      - name: Set up Go
+      - name: Set up Golang
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+      - name: Tidy go module
+        run: go mod tidy
+      - name: Generate go module
+        run: go generate ./...
       - name: Check GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -24,4 +28,4 @@ jobs:
       - name: Build application
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: build --clean --snapshot
+          args: build --clean
