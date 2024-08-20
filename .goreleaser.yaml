@@ -43,9 +43,18 @@ builds:
 
 archives:
   - id: default
-    format: binary
     builds:
       - default
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    wrap_in_directory: true
+    strip_binary_directory: true
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
 
 dockers:
   - id: default-amd64
