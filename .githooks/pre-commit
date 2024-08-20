@@ -6,6 +6,7 @@
 # it wants to stop the commit.
 
 set -e
+set -x
 
 go mod tidy
 go generate ./...

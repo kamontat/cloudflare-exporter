@@ -29,13 +29,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Tidy go module
-        run: go mod tidy
-      - name: Generate go module
-        run: go generate ./...
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: release --clean --verbose --auto-snapshot
+          args: release --clean --verbose --auto-snapshot --fail-fast
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
