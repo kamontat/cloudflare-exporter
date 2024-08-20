@@ -3,9 +3,9 @@ name: Main
 on:
   push:
 
-concurrency:
-  cancel-in-progress: true
-  group: main-${{ github.ref }}
+# concurrency:
+#   cancel-in-progress: true
+#   group: main-${{ github.ref }}
 
 jobs:
   main:
