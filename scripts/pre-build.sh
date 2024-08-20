@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+# set -e
 
 printf '>-------------------------<\n'
 printf 'current path: %s\n' "$PWD"
@@ -18,4 +18,4 @@ printf 'module path: %s\n' "$path"
 [ -f "$path" ] && path="$(dirname "$2")"
 [ -d "$path" ] && cd "$path" && ls -la
 
-return 0
+exit 0
