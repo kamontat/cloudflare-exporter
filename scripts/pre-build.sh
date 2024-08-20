@@ -18,4 +18,4 @@ printf 'module path: %s\n' "$path"
 [ -f "$path" ] && path="$(dirname "$2")"
 [ -d "$path" ] && cd "$path" && ls -la
 
-exit 0
+exit 1
