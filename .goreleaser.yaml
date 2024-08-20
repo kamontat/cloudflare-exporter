@@ -13,6 +13,7 @@ project_name: cf-exporter
 before:
   hooks:
     - go mod tidy
+    ## This only works on non gomod proxy mode (anything except release prod)
     - go generate ./...
 
 builds:
@@ -41,7 +42,7 @@ builds:
       - -X main.gitState={{.GitTreeState}}
       - -X main.builtBy=goreleaser
     hooks:
-      pre: ./scripts/pre-build.sh {{.Path}} {{.ModulePath}}
+      pre: ./scripts/go-generate.sh default
 
 archives:
   - id: default
