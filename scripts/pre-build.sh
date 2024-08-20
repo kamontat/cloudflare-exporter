@@ -17,3 +17,5 @@ path="$2"
 printf 'module path: %s\n' "$path"
 [ -f "$path" ] && path="$(dirname "$2")"
 [ -d "$path" ] && cd "$path" && ls -la
+
+return 0
