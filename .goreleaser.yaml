@@ -41,7 +41,7 @@ builds:
       - -X main.gitState={{.GitTreeState}}
       - -X main.builtBy=goreleaser
     hooks:
-      pre: ./scripts/pre-build.sh {{.ModulePath}}
+      pre: ./scripts/pre-build.sh {{.Path}} {{.ModulePath}} {{.ArtifactPath}}
 
 archives:
   - id: default
