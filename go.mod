@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/Khan/genqlient v0.7.0
-	github.com/cloudflare/cloudflare-go v0.114.0
+	github.com/cloudflare/cloudflare-go v0.115.0
 	github.com/go-co-op/gocron/v2 v2.14.2
 	github.com/gofiber/fiber/v3 v3.0.0-beta.3
 	github.com/google/uuid v1.6.0
@@ -23,7 +23,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/goccy/go-json v0.10.4 // indirect
+	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/gofiber/utils/v2 v2.0.0-beta.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
